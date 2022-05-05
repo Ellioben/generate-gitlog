@@ -32,12 +32,28 @@ type record struct {
 func main() {
 	flag.Parse()
 
-	//git("log", "log", "--pretty=format:\"%B%H\"")
+	out, err := git("log", "--pretty=format:\"%B%H\"")
+	if err != nil {
+		return
+	}
 
-	gitOut()
+	tags := strings.Split(out, "\n")
+	records := make([]record, 0, len(tags))
+	for _, t := range tags {
+		segs := strings.Split(t, ";")
+		if len(segs) < 3 || len(segs[0]) == 0 {
+			continue
+		}
+		version := segs[0]
+		date := strings.ReplaceAll(segs[1], "-", "/")
+		records = append(records, record{Version: version, Date: date})
+	}
+	fmt.Println(records)
+
+	//gitOut()
 }
 
-func git(dir string, args ...string) (string, error) {
+func git(args ...string) (string, error) {
 	var stdin, stdout, stderr bytes.Buffer
 
 	cmd := exec.Command("git", args...)
@@ -52,8 +68,7 @@ func git(dir string, args ...string) (string, error) {
 	outStr, errStr := string(stdout.Bytes()), string(stderr.Bytes())
 	fmt.Printf(">>out:\n%s\nerr:\n%s\n", outStr, errStr)
 	fmt.Printf("combined out:\n%s\n", string(out))
-
-	return "xxx", err
+	return string(out), err
 }
 
 func gitOut(args ...string) error {
@@ -73,6 +88,7 @@ func gitOut(args ...string) error {
 		}
 		fmt.Printf("line:%v -- %v\n", i, line)
 	}
+
 	cmd.Wait()
 	return nil
 }
