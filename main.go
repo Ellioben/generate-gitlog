@@ -6,11 +6,14 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"os/exec"
+	"strings"
 )
 
 var (
@@ -29,7 +32,9 @@ type record struct {
 func main() {
 	flag.Parse()
 
-	git("log", "log", "--pretty=format:\"%B%H\"")
+	//git("log", "log", "--pretty=format:\"%B%H\"")
+
+	gitOut()
 }
 
 func git(dir string, args ...string) (string, error) {
@@ -49,4 +54,25 @@ func git(dir string, args ...string) (string, error) {
 	fmt.Printf("combined out:\n%s\n", string(out))
 
 	return "xxx", err
+}
+
+func gitOut(args ...string) error {
+	cmd := exec.Command("git", "log", "--pretty=format:\"%B%H\"")
+	//cmd := exec.Command("git", args...)
+
+	stdout, _ := cmd.StdoutPipe()
+	cmd.Start()
+	reader := bufio.NewReader(stdout)
+	var i int
+	for {
+		i++
+		line, err := reader.ReadString('\n')
+		line = strings.TrimSpace(line)
+		if err != nil || io.EOF == err {
+			break
+		}
+		fmt.Printf("line:%v -- %v\n", i, line)
+	}
+	cmd.Wait()
+	return nil
 }
