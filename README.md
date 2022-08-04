@@ -8,6 +8,6 @@ base on git commit message to generate changelog.md
 4. config release_version.json
 
 ## generate changelog & update chengelog
-git message format <git message "bugfixes: xxxxx"> or <git message "features: xxxxx"> 
+git message format <git commit -m "bugfixes: xxxxx"> or <git commit -m "features: xxxxx"> 
 
 `node generate.js`
